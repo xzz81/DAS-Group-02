@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "Group02"
+number-sections: false
+format: 
+  html:
+    embed-resources: true
+    code-tools: true
+  pdf: default
+editor_options: 
+  chunk_output_type: console
+editor: visual
+execute:
+  warning: false
+  message: false
+output:
+  pdf_document:
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(gapminder)
+library(sjPlot)
+library(stats)
+library(jtools)
+```
+
+```{r}
+data <- read.csv("dataset02.csv")
+glimpse (data)
+```
+
+```{r}
+sapply(data, function(x) if(is.factor(x)) levels(x))
+```
+
+```{r}
+data$Region <- as.factor(data$Region)
+data$Household.Head.Sex <- as.factor(data$Household.Head.Sex)
+data$Type.of.Household <- as.factor(data$Type.of.Household)
+data$Electricity <- as.factor(data$Electricity)
+```
+
+```{r}
+str(data)
+levels(data$Type.of.Household)
+levels(data$Electricity)
+```
+
+
+```{r}
+poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                       Total.Food.Expenditure + Household.Head.Sex + 
+                       Household.Head.Age + Type.of.Household + 
+                       House.Floor.Area + House.Age + Number.of.bedrooms + Electricity,
+                     family = "poisson", data = data)
+
+summ(poisson_model_1)
+#plot(poisson_model)
+```
+
+```{r}
+poisson_model_2 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                       Total.Food.Expenditure + Household.Head.Sex +
+                       Household.Head.Age + Type.of.Household + 
+                       House.Age + Number.of.bedrooms + Electricity,
+                     family = "poisson", data = data)
+summ(poisson_model_2)
+```
+
+```{r}
+poisson_model_3 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                       Total.Food.Expenditure + Household.Head.Sex + 
+                       Household.Head.Age + Type.of.Household + 
+                       House.Age + Number.of.bedrooms,
+                     family = "poisson", data = data)
+summ(poisson_model_3)
+```
+
+```{r}
+poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                       Total.Food.Expenditure + Household.Head.Sex + 
+                       Household.Head.Age + Type.of.Household + House.Age,
+                     family = "poisson", data = data)
+summ(poisson_model_4)
+```
+
+```{r}
+confint(poisson_model_4) %>%
+  kable()
+```
+
