@@ -1,0 +1,130 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+?glm
+```
+
+```{r}
+data <- read.csv('dataset02.csv')
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+library(nnet)
+
+
+
+data$Type.of.Household <- factor(data$Type.of.Household,
+                                 levels = c('Single Family' , 'Extended Famil' , 'multinom'))
+  
+data$Household.Head.Sex <- factor(data$Household.Head.Sex,
+                                  levels = c('Male','Female'))
+
+data$Electricity <- factor(data$Electricity,
+                           levels = c('1','2'))
+
+
+m1<-multinom(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household +  House.Floor.Area +House.Age+ Number.of.bedrooms+Electricity,data=data)
+
+summary(m1)
+```
+
+```{r}
+summary(m1)
+```
+
+```{r}
+
+m2<-glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household +  House.Floor.Area +House.Age+ Number.of.bedrooms+Electricity,data=data , family =  poisson)
+
+
+```
+
+```{r}
+summary(m2)
+```
+
+```{r}
+m3<-glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household  +House.Age+ Number.of.bedrooms+Electricity,data=data , family =  poisson)
+summary(m3)
+```
+
+```{r}
+m4 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+
+
+summary(m4)
+```
+
+```{r}
+m5 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household  +House.Age,data=data , family =  poisson)
+
+summary(m5)
+```
+
+```{r}
+
+m6 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household  + Number.of.bedrooms,data=data , family =  poisson)
+
+summary(m6)
+```
+
+```{r}
+m7 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+summary(m7)
+```
+
+```{r}
+
+m8 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Type.of.Household  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+summary(m8)
+
+```
+
+```{r}
+m9 <- glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure +Household.Head.Age+Type.of.Household  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+summary(m9)
+```
+
+```{r}
+m10 <- glm(Total.Number.of.Family.members~Total.Household.Income+ Household.Head.Sex +Household.Head.Age+Type.of.Household  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+summary(m10)
+```
+
+```{r}
+m11 <- glm(Total.Number.of.Family.members~Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household  +House.Age+ Number.of.bedrooms,data=data , family =  poisson)
+summary(m11)
+```
+
+```{r}
+#the final model is m4
+#It has the same result of m1( the multinom model)
+```
