@@ -43,7 +43,7 @@ ggplot(data, aes(Total.Number.of.Family.members)) +
   geom_histogram()
 ```
 
-Converting character variables into factor variables is convenient for analysis. We find that "Region" only have one level, so we won't use this variables to fit model. 
+Converting character variables into factor variables is convenient for analysis. We find that "Region" only have one level, so we won't use this variables to fit model.
 
 The level of "Household.Head.Sex" is female and male. "Type.of.Household" has three different level, which are extended Family, single family and two or more nonrelated persons/members. Because of "1" of variable "Electricity" means the house have electricity and "0" means the house doesn't have electricity, we convert the count variable "Electricity" into a factor variable.
 
@@ -56,6 +56,7 @@ data$Electricity <- as.factor(data$Electricity)
 ```
 
 ```{r}
+
 # View variable levels
 str(data)
 levels(data$Region)
@@ -66,13 +67,12 @@ levels(data$Electricity)
 
 ## Methodology
 
-The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. So we consider using either Poisson regression or binomial regression, as both are suitable for count data.
-
-Poisson regression is appropriate when the variance equals the mean, while binomial regression is used for overdispersed data, where the variance exceeds the mean.
+The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. So we consider using Poisson regression，which is suitable for count data.
 
 ### Poisson model
-We plan to select model by looking at the p-value of variable and using the stepwise model selection based on AIC.
-Model 1 covers all explanatory variables.
+
+We plan to select model by looking at the p-value of variable and using the stepwise model selection based on AIC. Model 1 covers all explanatory variables.
+
 ```{r}
 poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                          Total.Food.Expenditure + 
@@ -86,9 +86,11 @@ poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                        family = "poisson", data = data)
 
 summ(poisson_model_1)
-#plot(poisson_model_1)
+plot(poisson_model_1)
 ```
+
 From the result, we notice that P-value of house floor area is 0.77, indicating that it is not statistically significant. So we decide to eliminate this variable.
+
 ```{r}
 poisson_model_2 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                          Total.Food.Expenditure + 
@@ -101,7 +103,9 @@ poisson_model_2 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                        family = "poisson", data = data)
 summ(poisson_model_2)
 ```
+
 The next step is remove the insignificant electricity variables.
+
 ```{r}
 poisson_model_3 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                          Total.Food.Expenditure + 
@@ -123,4 +127,5 @@ poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                          House.Age,
                        family = "poisson", data = data)
 summ(poisson_model_4)
+#plot(poisson_model_4)
 ```
