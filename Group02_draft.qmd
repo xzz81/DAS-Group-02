@@ -17,15 +17,12 @@ output:
   pdf_document:
 ---
 
-## Quarto
+## exploratory data analysis
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+We are using the given data set "dataset02", which provides data on family income and expenditure. Our aim is to analyse which household related variables influence the number of people living in a household?
 
 ```{r}
+# Load package
 library(tidyverse)
 library(moderndive)
 library(gapminder)
@@ -35,15 +32,23 @@ library(jtools)
 ```
 
 ```{r}
+# Upload the dataset02 and rename it as "data"
 data <- read.csv("dataset02.csv")
-glimpse (data)
+glimpse(data)
 ```
 
 ```{r}
 sapply(data, function(x) if(is.factor(x)) levels(x))
+ggplot(data, aes(Total.Number.of.Family.members)) +
+  geom_histogram()
 ```
 
+Converting character variables into factor variables is convenient for analysis. We find that "Region" only have one level, so we won't use this variables to fit model. 
+
+The level of "Household.Head.Sex" is female and male. "Type.of.Household" has three different level, which are extended Family, single family and two or more nonrelated persons/members. Because of "1" of variable "Electricity" means the house have electricity and "0" means the house doesn't have electricity, we convert the count variable "Electricity" into a factor variable.
+
 ```{r}
+# Convert some variables into factor variables
 data$Region <- as.factor(data$Region)
 data$Household.Head.Sex <- as.factor(data$Household.Head.Sex)
 data$Type.of.Household <- as.factor(data$Type.of.Household)
@@ -51,51 +56,71 @@ data$Electricity <- as.factor(data$Electricity)
 ```
 
 ```{r}
+# View variable levels
 str(data)
+levels(data$Region)
+levels(data$Household.Head.Sex)
 levels(data$Type.of.Household)
 levels(data$Electricity)
 ```
 
+## Methodology
 
+The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. So we consider using either Poisson regression or binomial regression, as both are suitable for count data.
+
+Poisson regression is appropriate when the variance equals the mean, while binomial regression is used for overdispersed data, where the variance exceeds the mean.
+
+### Poisson model
+We plan to select model by looking at the p-value of variable and using the stepwise model selection based on AIC.
+Model 1 covers all explanatory variables.
 ```{r}
 poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
-                       Total.Food.Expenditure + Household.Head.Sex + 
-                       Household.Head.Age + Type.of.Household + 
-                       House.Floor.Area + House.Age + Number.of.bedrooms + Electricity,
-                     family = "poisson", data = data)
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Floor.Area + 
+                         House.Age + 
+                         Number.of.bedrooms + 
+                         Electricity,
+                       family = "poisson", data = data)
 
 summ(poisson_model_1)
-#plot(poisson_model)
+#plot(poisson_model_1)
 ```
-
+From the result, we notice that P-value of house floor area is 0.77, indicating that it is not statistically significant. So we decide to eliminate this variable.
 ```{r}
 poisson_model_2 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
-                       Total.Food.Expenditure + Household.Head.Sex +
-                       Household.Head.Age + Type.of.Household + 
-                       House.Age + Number.of.bedrooms + Electricity,
-                     family = "poisson", data = data)
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex +
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age + 
+                         Number.of.bedrooms + 
+                         Electricity,
+                       family = "poisson", data = data)
 summ(poisson_model_2)
 ```
-
+The next step is remove the insignificant electricity variables.
 ```{r}
 poisson_model_3 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
-                       Total.Food.Expenditure + Household.Head.Sex + 
-                       Household.Head.Age + Type.of.Household + 
-                       House.Age + Number.of.bedrooms,
-                     family = "poisson", data = data)
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age + 
+                         Number.of.bedrooms,
+                       family = "poisson", data = data)
 summ(poisson_model_3)
 ```
 
 ```{r}
 poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
-                       Total.Food.Expenditure + Household.Head.Sex + 
-                       Household.Head.Age + Type.of.Household + House.Age,
-                     family = "poisson", data = data)
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age,
+                       family = "poisson", data = data)
 summ(poisson_model_4)
 ```
-
-```{r}
-confint(poisson_model_4) %>%
-  kable()
-```
-
