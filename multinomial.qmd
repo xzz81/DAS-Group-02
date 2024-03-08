@@ -1,0 +1,69 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+?glm
+```
+
+```{r}
+data <- read.csv('dataset02.csv')
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+library(nnet)
+
+
+
+data$Type.of.Household <- factor(data$Type.of.Household,
+                                 levels = c('Single Family' , 'Extended Famil' , 'multinom'))
+  
+data$Household.Head.Sex <- factor(data$Household.Head.Sex,
+                                  levels = c('Male','Female'))
+
+data$Electricity <- factor(data$Electricity,
+                           levels = c('1','2'))
+
+
+m1<-multinom(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household +  House.Floor.Area +House.Age+ Number.of.bedrooms+Electricity,data=data)
+
+summary(m1)
+```
+
+```{r}
+summary(m1)
+```
+
+```{r}
+
+m2<-glm(Total.Number.of.Family.members~Total.Household.Income+Total.Food.Expenditure+ Household.Head.Sex +Household.Head.Age+Type.of.Household +  House.Floor.Area +House.Age+ Number.of.bedrooms+Electricity,data=data , family = binomial)
+
+
+```
