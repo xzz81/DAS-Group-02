@@ -29,6 +29,7 @@ library(gapminder)
 library(sjPlot)
 library(stats)
 library(jtools)
+library(psych)
 ```
 
 ```{r}
@@ -62,6 +63,27 @@ levels(data$Region)
 levels(data$Household.Head.Sex)
 levels(data$Type.of.Household)
 levels(data$Electricity)
+```
+
+```{r}
+pairs(data[,-7])
+```
+
+Correlation graph except categorical variables.
+
+```{r}
+pairs.panels(data[,-c(2,4,6,7)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
 ```
 
 ## Methodology
@@ -128,4 +150,23 @@ poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
                          House.Age,
                        family = "poisson", data = data)
 summ(poisson_model_4)
+```
+
+Check assumption.
+
+```{r}
+residuals <- residuals(poisson_model_4)
+
+plot(residuals ~ fitted.values(poisson_model_4),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3)  
+```
+
+```{r}
+qqnorm(residuals)
+qqline(residuals, col="red",lwd=2)
 ```
