@@ -18,7 +18,7 @@ output:
 ---
 
 ## exploratory data analysis
-
+#hello world
 We are using the given data set "dataset02", which provides data on family income and expenditure. Our aim is to analyse which household related variables influence the number of people living in a household?
 
 ```{r}
