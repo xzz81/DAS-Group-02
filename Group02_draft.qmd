@@ -229,37 +229,9 @@ abline(h=0, lty=2, col="red",lwd=3)
 
 ```
 
-Compare it with the old  model.
-```{r}
-par(mfcol=c(1,2))
-plot(residuals ~ fitted.values(poisson_model_4),
-     xlab = "Fitted Values",
-     ylab = "Residuals",
-     main = "Residual Plot for new model",
-     cex=1,
-     pch=20)+
-abline(h=0, lty=2, col="red",lwd=3)
-
-plot(residuals(poisson_model_1) ~ fitted.values(poisson_model_1),
-     xlab = "Fitted Values",
-     ylab = "Residuals",
-     main = "Residual Plotfor original model",
-     cex=1,
-     pch=20)+
-abline(h=0, lty=2, col="red",lwd=3)
-```
-
-
-
-3.The residuals are normally distributed. Check this by Q-Q plot.
-```{r}
-qqnorm(residuals)
-qqline(residuals, col="red",lwd=2)
-```
-
 Residuals for different variables.
 
-1.Residual Plot for total household income
+Residual Plot for total household income
 ```{r}
 poisson_THI <- glm(Total.Number.of.Family.members ~ Total.Household.Income,family = "poisson", data = data)
 
@@ -268,7 +240,7 @@ plot(residuals(poisson_THI) ~ fitted.values(poisson_THI),xlab = "Fitted Values",
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
-2.Residual Plot for total food expenditure
+Residual Plot for total food expenditure
 ```{r}
 poisson_TFE <- glm(Total.Number.of.Family.members ~ Total.Food.Expenditure,family = "poisson", data = data)
 
@@ -278,7 +250,7 @@ plot(residuals(poisson_TFE) ~ fitted.values(poisson_TFE),xlab = "Fitted Values",
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
-3.Residual Plot for household head sex
+Residual Plot for household head sex
 ```{r}
 poisson_HHS <- glm(Total.Number.of.Family.members ~ Household.Head.Sex,family = "poisson", data = data)
 
@@ -288,7 +260,7 @@ plot(residuals(poisson_HHS) ~ fitted.values(poisson_HHS),xlab = "Fitted Values",
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
-4.Residual Plot for household head age
+Residual Plot for household head age
 ```{r}
 poisson_HHA <- glm(Total.Number.of.Family.members ~ Household.Head.Age,family = "poisson", data = data)
 
@@ -298,7 +270,7 @@ plot(residuals(poisson_HHA) ~ fitted.values(poisson_HHA),xlab = "Fitted Values",
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
-5.Residual Plot for type of household
+Residual Plot for type of household
 ```{r}
 poisson_TH <- glm(Total.Number.of.Family.members ~ Type.of.Household,family = "poisson", data = data)
 
@@ -308,7 +280,7 @@ plot(residuals(poisson_TH) ~ fitted.values(poisson_TH),xlab = "Fitted Values",yl
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
-6.Residual Plot for house age
+Residual Plot for house age
 ```{r}
 poisson_HA <- glm(Total.Number.of.Family.members ~ House.Age,family = "poisson", data = data)
 
@@ -318,3 +290,8 @@ plot(residuals(poisson_HA) ~ fitted.values(poisson_HA),xlab = "Fitted Values",yl
 abline(h=0, lty=2, col="red",lwd=3)
 ```
 
+3.The residuals are normally distributed. Check this by Q-Q plot.
+```{r}
+qqnorm(residuals)
+qqline(residuals, col="red",lwd=2)
+```
