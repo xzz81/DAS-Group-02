@@ -29,6 +29,10 @@ library(gapminder)
 library(sjPlot)
 library(stats)
 library(jtools)
+library(psych)
+library(graphics)
+library(ggplot2)
+library(patchwork)
 ```
 
 ```{r}
@@ -63,6 +67,127 @@ levels(data$Region)
 levels(data$Household.Head.Sex)
 levels(data$Type.of.Household)
 levels(data$Electricity)
+```
+
+Correlation graph except categorical variables.
+
+```{r}
+pairs.panels(data[,-c(2,4,6)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
+```
+
+From the correlation graph we can see three variables most correlate
+with the total number of family member:
+1.Total household income
+2.Total food expenditure 
+3.Household head age
+
+
+The graph with only strong correlate variable
+
+```{r}
+pairs.panels(data[,c(1,3,5,7)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
+```
+
+
+
+Then we draw boxplots of these variables to see if there is any outliers:
+
+1.Total food expenditure and total number of family member by household head sex.
+```{r}
+p1=ggplot(data, aes(x=Total.Food.Expenditure, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Total food expenditure and total number of family member by household head sex",
+       x="Total food expenditure",
+       y="total number of family member")
+```
+
+2.Household head age and total number of family member by household head sex
+```{r}
+p2=ggplot(data, aes(x=Household.Head.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Household head age and total number of family member by household head sex",
+       x="Household Head Age",
+       y="total number of family member")
+```
+
+3.Total household income and total number of family member by household head sex
+```{r}
+p3=ggplot(data, aes(x=Total.Household.Income, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Total household income and total number of family member by household head sex",
+       x="Total Household Income",
+       y="total number of family member")
+```
+
+4.House floor area and total number of family member by household head sex
+```{r}
+p4=ggplot(data, aes(x=House.Floor.Area, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="House floor area and total number of family member by household head sex",
+       x="House floor area",
+       y="total number of family member")
+```
+
+5.House age and total number of family member by household head sex
+```{r}
+p5=ggplot(data, aes(x=House.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="House age and total number of family member by household head sex",
+       x="House age",
+       y="total number of family member")
+```
+
+6.Number of bedrooms and total number of family member by household head sex
+```{r}
+p6=ggplot(data, aes(x=Number.of.bedrooms, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Number of bedrooms and total number of family member by household head sex",
+       x="Number of bedrooms",
+       y="total number of family member")
+```
+
+7.Electricity and total number of family member by household head sex
+```{r}
+p7=ggplot(data, aes(x=Electricity, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Electricity and total number of family member by household head sex",
+       x="Electricity",
+       y="total number of family member")
+```
+
+```{r}
+(p1|p2|p3)/
+(p4|p5|p6)/
+  p7
 ```
 
 ## Methodology
@@ -129,3 +254,133 @@ poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
 summ(poisson_model_4)
 #plot(poisson_model_4)
 ```
+
+AIC and BIC for each module.
+
+```{r}
+models <- list(poisson_model_1, poisson_model_2, poisson_model_3,  poisson_model_4)
+model_names <- c("Model 1", "Model 2","Model 3", "Model 4")
+
+aic_bic_df <- tibble(
+  Model = model_names,
+  AIC = sapply(models, AIC),
+  BIC = sapply(models, BIC)
+)
+aic_bic_df
+```
+
+1. The assumption that the mean equals the variance
+Testing for overdispersion
+```{r}
+dispersion_index <- sum(residuals(poisson_model_4, type = "pearson")^2) / df.residual(poisson_model_4)
+print(dispersion_index)
+```
+If the dispersion index is significantly less than 1, this indicates that the model is not overdispersed.
+
+2. Assumption of linear relationships
+Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
+
+```{r}
+residuals <- residuals(poisson_model_2)
+
+plot(residuals ~ fitted.values(poisson_model_2),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 2",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3) 
+```
+
+```{r}
+residuals <- residuals(poisson_model_3)
+
+plot(residuals ~ fitted.values(poisson_model_3),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 3",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3) 
+```
+
+```{r}
+residuals <- residuals(poisson_model_4)
+
+plot(residuals ~ fitted.values(poisson_model_4),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 4",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3)  
+
+```
+
+Residuals for different variables.
+
+Residual Plot for total household income
+```{r}
+poisson_THI <- glm(Total.Number.of.Family.members ~ Total.Household.Income,family = "poisson", data = data)
+
+plot(residuals(poisson_THI) ~ fitted.values(poisson_THI),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total household income",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+Residual Plot for total food expenditure
+```{r}
+poisson_TFE <- glm(Total.Number.of.Family.members ~ Total.Food.Expenditure,family = "poisson", data = data)
+
+
+plot(residuals(poisson_TFE) ~ fitted.values(poisson_TFE),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+Residual Plot for household head sex
+```{r}
+poisson_HHS <- glm(Total.Number.of.Family.members ~ Household.Head.Sex,family = "poisson", data = data)
+
+
+plot(residuals(poisson_HHS) ~ fitted.values(poisson_HHS),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for household head sex",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+Residual Plot for household head age
+```{r}
+poisson_HHA <- glm(Total.Number.of.Family.members ~ Household.Head.Age,family = "poisson", data = data)
+
+
+plot(residuals(poisson_HHA) ~ fitted.values(poisson_HHA),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for household head age",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+Residual Plot for type of household
+```{r}
+poisson_TH <- glm(Total.Number.of.Family.members ~ Type.of.Household,family = "poisson", data = data)
+
+
+plot(residuals(poisson_TH) ~ fitted.values(poisson_TH),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for type of household",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+Residual Plot for house age
+```{r}
+poisson_HA <- glm(Total.Number.of.Family.members ~ House.Age,family = "poisson", data = data)
+
+
+plot(residuals(poisson_HA) ~ fitted.values(poisson_HA),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for house age",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+3.The residuals are normally distributed. Check this by Q-Q plot.
+```{r}
+qqnorm(residuals)
+qqline(residuals, col="red",lwd=2)
+```
+
