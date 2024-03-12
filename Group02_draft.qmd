@@ -32,6 +32,7 @@ library(jtools)
 library(psych)
 library(graphics)
 library(ggplot2)
+library(patchwork)
 ```
 
 ```{r}
@@ -114,7 +115,7 @@ Then we draw boxplots of these variables to see if there is any outliers:
 
 1.Total food expenditure and total number of family member by household head sex.
 ```{r}
-ggplot(data, aes(x=Total.Food.Expenditure, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+p1=ggplot(data, aes(x=Total.Food.Expenditure, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
   geom_boxplot() +
   facet_wrap(~Household.Head.Sex) +
   labs(title="Total food expenditure and total number of family member by household head sex",
@@ -124,7 +125,7 @@ ggplot(data, aes(x=Total.Food.Expenditure, y=Total.Number.of.Family.members, fil
 
 2.Household head age and total number of family member by household head sex
 ```{r}
-ggplot(data, aes(x=Household.Head.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+p2=ggplot(data, aes(x=Household.Head.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
   geom_boxplot() +
   facet_wrap(~Household.Head.Sex) +
   labs(title="Household head age and total number of family member by household head sex",
@@ -134,12 +135,58 @@ ggplot(data, aes(x=Household.Head.Age, y=Total.Number.of.Family.members, fill=Ho
 
 3.Total household income and total number of family member by household head sex
 ```{r}
-ggplot(data, aes(x=Total.Household.Income, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+p3=ggplot(data, aes(x=Total.Household.Income, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
   geom_boxplot() +
   facet_wrap(~Household.Head.Sex) +
   labs(title="Total household income and total number of family member by household head sex",
        x="Total Household Income",
        y="total number of family member")
+```
+
+4.House floor area and total number of family member by household head sex
+```{r}
+p4=ggplot(data, aes(x=House.Floor.Area, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="House floor area and total number of family member by household head sex",
+       x="House floor area",
+       y="total number of family member")
+```
+
+5.House age and total number of family member by household head sex
+```{r}
+p5=ggplot(data, aes(x=House.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="House age and total number of family member by household head sex",
+       x="House age",
+       y="total number of family member")
+```
+
+6.Number of bedrooms and total number of family member by household head sex
+```{r}
+p6=ggplot(data, aes(x=Number.of.bedrooms, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Number of bedrooms and total number of family member by household head sex",
+       x="Number of bedrooms",
+       y="total number of family member")
+```
+
+7.Electricity and total number of family member by household head sex
+```{r}
+p7=ggplot(data, aes(x=Electricity, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Electricity and total number of family member by household head sex",
+       x="Electricity",
+       y="total number of family member")
+```
+
+```{r}
+(p1|p2|p3)/
+(p4|p5|p6)/
+  p7
 ```
 
 ## Methodology
@@ -232,13 +279,38 @@ If the dispersion index is significantly less than 1, this indicates that the mo
 
 2. Assumption of linear relationships
 Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
+
+```{r}
+residuals <- residuals(poisson_model_2)
+
+plot(residuals ~ fitted.values(poisson_model_2),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 2",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3) 
+```
+
+```{r}
+residuals <- residuals(poisson_model_3)
+
+plot(residuals ~ fitted.values(poisson_model_3),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 3",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3) 
+```
+
 ```{r}
 residuals <- residuals(poisson_model_4)
 
 plot(residuals ~ fitted.values(poisson_model_4),
      xlab = "Fitted Values",
      ylab = "Residuals",
-     main = "Residual Plot",
+     main = "Residual Plot for model 4",
      cex=1,
      pch=20)+
 abline(h=0, lty=2, col="red",lwd=3)  
