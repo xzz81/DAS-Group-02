@@ -30,6 +30,7 @@ library(sjPlot)
 library(stats)
 library(jtools)
 library(psych)
+library(graphics)
 ```
 
 ```{r}
@@ -66,7 +67,7 @@ levels(data$Electricity)
 ```
 
 ```{r}
-pairs(data[,-7])
+pairs(data)
 ```
 
 Correlation graph except categorical variables.
@@ -152,8 +153,31 @@ poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
 summ(poisson_model_4)
 ```
 
-Check assumption.
+AIC and BIC for each module.
 
+```{r}
+models <- list(poisson_model_1, poisson_model_2, poisson_model_3,  poisson_model_4)
+model_names <- c("Model 1", "Model 2","Model 3", "Model 4")
+
+# 创建一个数据框来储存AIC和BIC值
+aic_bic_df <- tibble(
+  Model = model_names,
+  AIC = sapply(models, AIC),
+  BIC = sapply(models, BIC)
+)
+aic_bic_df
+```
+
+1. The assumption that the mean equals the variance
+Testing for overdispersion
+```{r}
+dispersion_index <- sum(residuals(poisson_model_4, type = "pearson")^2) / df.residual(poisson_model_4)
+print(dispersion_index)
+```
+If the dispersion index is significantly less than 1, this indicates that the model is not overdispersed.
+
+2. Assumption of linear relationships
+Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
 ```{r}
 residuals <- residuals(poisson_model_4)
 
@@ -164,9 +188,69 @@ plot(residuals ~ fitted.values(poisson_model_4),
      cex=1,
      pch=20)+
 abline(h=0, lty=2, col="red",lwd=3)  
+
 ```
 
+Compare it with the old  model.
+```{r}
+par(mfcol=c(1,2))
+plot(residuals ~ fitted.values(poisson_model_4),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for new model",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3)
+
+plot(residuals(poisson_model_1) ~ fitted.values(poisson_model_1),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plotfor original model",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+
+
+3.The residuals are normally distributed. Check this by Q-Q plot.
 ```{r}
 qqnorm(residuals)
 qqline(residuals, col="red",lwd=2)
 ```
+
+Residuals for different variables.
+
+1.Residual Plot for total household income
+```{r}
+poisson_THI <- glm(Total.Number.of.Family.members ~ Total.Household.Income,family = "poisson", data = data)
+
+residuals_THI <- residuals(poisson_THI)
+
+plot(residuals_THI ~ fitted.values(poisson_THI),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total household income",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+2.Residual Plot for total food expenditure
+```{r}
+poisson_TFE <- glm(Total.Number.of.Family.members ~ Total.Food.Expenditure,family = "poisson", data = data)
+
+residuals_TFE <- residuals(poisson_TFE)
+
+plot(residuals_TFE ~ fitted.values(poisson_TFE),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+3.Residual Plot for household head sex
+```{r}
+poisson_HHS <- glm(Total.Number.of.Family.members ~ Household.Head.Sex,family = "poisson", data = data)
+
+residuals_HHS <- residuals(poisson_HHS)
+
+plot(residuals_HHS ~ fitted.values(poisson_HHS),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
