@@ -31,6 +31,7 @@ library(stats)
 library(jtools)
 library(psych)
 library(graphics)
+library(ggplot2)
 ```
 
 ```{r}
@@ -73,7 +74,7 @@ pairs(data)
 Correlation graph except categorical variables.
 
 ```{r}
-pairs.panels(data[,-c(2,4,6,7)],
+pairs.panels(data[,-c(2,4,6)],
       smooth = TRUE,
       scale = FALSE,
       density = TRUE,
@@ -85,6 +86,44 @@ pairs.panels(data[,-c(2,4,6,7)],
       hist.col = 4,
       ci = TRUE
       )
+```
+
+From the correlation graph we can see three variables most correlate
+with the total number of family member:
+1.Total food expenditure 
+2.Household head age
+3.Total household income
+
+Then we draw boxplots of these variables to see if there is any outliers:
+
+1.Total food expenditure and total number of family member by household head sex.
+```{r}
+ggplot(data, aes(x=Total.Food.Expenditure, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Total food expenditure and total number of family member by household head sex",
+       x="Total food expenditure",
+       y="total number of family member")
+```
+
+2.Household head age and total number of family member by household head sex
+```{r}
+ggplot(data, aes(x=Household.Head.Age, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Household head age and total number of family member by household head sex",
+       x="Household Head Age",
+       y="total number of family member")
+```
+
+3.Total household income and total number of family member by household head sex
+```{r}
+ggplot(data, aes(x=Total.Household.Income, y=Total.Number.of.Family.members, fill=Household.Head.Sex)) + 
+  geom_boxplot() +
+  facet_wrap(~Household.Head.Sex) +
+  labs(title="Total household income and total number of family member by household head sex",
+       x="Total Household Income",
+       y="total number of family member")
 ```
 
 ## Methodology
@@ -159,7 +198,6 @@ AIC and BIC for each module.
 models <- list(poisson_model_1, poisson_model_2, poisson_model_3,  poisson_model_4)
 model_names <- c("Model 1", "Model 2","Model 3", "Model 4")
 
-# 创建一个数据框来储存AIC和BIC值
 aic_bic_df <- tibble(
   Model = model_names,
   AIC = sapply(models, AIC),
@@ -225,9 +263,7 @@ Residuals for different variables.
 ```{r}
 poisson_THI <- glm(Total.Number.of.Family.members ~ Total.Household.Income,family = "poisson", data = data)
 
-residuals_THI <- residuals(poisson_THI)
-
-plot(residuals_THI ~ fitted.values(poisson_THI),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total household income",cex=1,pch=20)+
+plot(residuals(poisson_THI) ~ fitted.values(poisson_THI),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total household income",cex=1,pch=20)+
 
 abline(h=0, lty=2, col="red",lwd=3)
 ```
@@ -236,9 +272,8 @@ abline(h=0, lty=2, col="red",lwd=3)
 ```{r}
 poisson_TFE <- glm(Total.Number.of.Family.members ~ Total.Food.Expenditure,family = "poisson", data = data)
 
-residuals_TFE <- residuals(poisson_TFE)
 
-plot(residuals_TFE ~ fitted.values(poisson_TFE),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
+plot(residuals(poisson_TFE) ~ fitted.values(poisson_TFE),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
 
 abline(h=0, lty=2, col="red",lwd=3)
 ```
@@ -247,9 +282,38 @@ abline(h=0, lty=2, col="red",lwd=3)
 ```{r}
 poisson_HHS <- glm(Total.Number.of.Family.members ~ Household.Head.Sex,family = "poisson", data = data)
 
-residuals_HHS <- residuals(poisson_HHS)
 
-plot(residuals_HHS ~ fitted.values(poisson_HHS),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for total food expenditue",cex=1,pch=20)+
+plot(residuals(poisson_HHS) ~ fitted.values(poisson_HHS),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for household head sex",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+4.Residual Plot for household head age
+```{r}
+poisson_HHA <- glm(Total.Number.of.Family.members ~ Household.Head.Age,family = "poisson", data = data)
+
+
+plot(residuals(poisson_HHA) ~ fitted.values(poisson_HHA),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for household head age",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+5.Residual Plot for type of household
+```{r}
+poisson_TH <- glm(Total.Number.of.Family.members ~ Type.of.Household,family = "poisson", data = data)
+
+
+plot(residuals(poisson_TH) ~ fitted.values(poisson_TH),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for type of household",cex=1,pch=20)+
+
+abline(h=0, lty=2, col="red",lwd=3)
+```
+
+6.Residual Plot for house age
+```{r}
+poisson_HA <- glm(Total.Number.of.Family.members ~ House.Age,family = "poisson", data = data)
+
+
+plot(residuals(poisson_HA) ~ fitted.values(poisson_HA),xlab = "Fitted Values",ylab = "Residuals",main = "Residual Plot for house age",cex=1,pch=20)+
 
 abline(h=0, lty=2, col="red",lwd=3)
 ```
