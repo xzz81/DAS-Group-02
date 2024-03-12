@@ -67,10 +67,6 @@ levels(data$Type.of.Household)
 levels(data$Electricity)
 ```
 
-```{r}
-pairs(data)
-```
-
 Correlation graph except categorical variables.
 
 ```{r}
@@ -90,9 +86,29 @@ pairs.panels(data[,-c(2,4,6)],
 
 From the correlation graph we can see three variables most correlate
 with the total number of family member:
-1.Total food expenditure 
-2.Household head age
-3.Total household income
+1.Total household income
+2.Total food expenditure 
+3.Household head age
+
+
+The graph with only strong correlate variable
+
+```{r}
+pairs.panels(data[,c(1,3,5,7)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
+```
+
+
 
 Then we draw boxplots of these variables to see if there is any outliers:
 
@@ -295,3 +311,4 @@ abline(h=0, lty=2, col="red",lwd=3)
 qqnorm(residuals)
 qqline(residuals, col="red",lwd=2)
 ```
+
