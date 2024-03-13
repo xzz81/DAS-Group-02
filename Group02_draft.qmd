@@ -2,11 +2,11 @@
 title: "Untitled"
 author: "Group02"
 number-sections: false
-format: 
-  html:
-    embed-resources: true
-    code-tools: true
-  pdf: default
+format: pdf
+include-in-header: 
+  text: |
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 editor_options: 
   chunk_output_type: console
 editor: visual
