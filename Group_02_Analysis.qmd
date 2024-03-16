@@ -1,0 +1,419 @@
+---
+title: "Group_02_Analysis"
+author: "Group02: Yue Xing, Chengyang Dong, Jingyi Zhu, Qinyuan Yi"
+number-sections: false
+format: pdf
+include-in-header: 
+  text: |
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+editor_options: 
+  chunk_output_type: console
+editor: visual
+execute:
+  warning: false
+  message: false
+output:
+  pdf_document:
+---
+
+# exploratory data analysis
+
+We are using the given data set "dataset02", which provides data on family income and expenditure. We aim to analyse which household-related variables influence the number of people living in a household.
+
+```{r}
+# Load packages
+library(MASS)
+library(tidyverse)
+library(psych)
+library(jtools)
+library(stats)
+library(graphics)
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(skimr)
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+# Upload the dataset02 and rename it as "data"
+data <- read.csv("dataset02.csv")
+glimpse(data)
+```
+
+Considering that "Total.Number.of.Family.members" is a set of counting variables, consisting of discrete non-negative integers. Therefore, it was chosen to first observe the characteristics of the distribution of the Total.Number.of.Family.members variable.
+
+```{r}
+# View outcome variables
+ggplot(data, aes(Total.Number.of.Family.members)) +
+  geom_histogram()
+```
+
+The histogram shows that the distribution of the Total.Number.of.Family.members variable is right skewed. Combined with the fact that the variable is a set of count-type variables, it can be roughly tentatively assumed that the abundance of the species shows a Poisson distribution.
+
+Therefore, for the subsequent regression model selection for analysing the factors influencing family members, the Poisson regression implementation in the generalised linear model can be initially considered.
+
+### Data pre-processing
+
+```{r}
+# Convert some variables into factor variables
+data$Region <- as.factor(data$Region)
+data$Household.Head.Sex <- as.factor(data$Household.Head.Sex)
+data$Type.of.Household <- as.factor(data$Type.of.Household)
+data$Electricity <- as.factor(data$Electricity)
+```
+
+```{r}
+# View levels of variables
+levels(data$Region)
+levels(data$Household.Head.Sex)
+levels(data$Type.of.Household)
+levels(data$Electricity)
+```
+
+Converting character variables into factor variables is convenient for analysis. We find that "Region" only have one level, so we won't use this variables to fit model.
+
+The level of "Household.Head.Sex" is female and male. "Type.of.Household" has three different level, which are extended Family, single family and two or more nonrelated persons/members. Because of "1" of variable "Electricity" means the house have electricity and "0" means the house doesn't have electricity, we convert the count variable "Electricity" into a factor variable.
+
+### Visualization
+
+```{r}
+# Descriptive statistical analysis of selected variables
+data_summary <- data %>%
+  select(Total.Number.of.Family.members, Total.Household.Income, Total.Food.Expenditure, 
+         Household.Head.Age, House.Floor.Area, House.Age, Number.of.bedrooms) %>%
+  skim() %>%
+  transmute(
+    Variable = case_when(
+      skim_variable == "Total.Number.of.Family.members" ~ "Total Number of Family members",
+      skim_variable == "Total.Household.Income" ~ "Total Household Income",
+      skim_variable == "Total.Food.Expenditure" ~ "Total Food Expenditure",
+      skim_variable == "Household.Head.Age" ~ "Household Head Age",
+      skim_variable == "House.Floor.Area" ~ "House Floor Area",
+      skim_variable == "House.Age" ~ "House Age",
+      skim_variable == "Number.of.bedrooms" ~ "Number of bedrooms",
+      TRUE ~ as.character(skim_variable) # 更改变量名称
+    ),
+    Mean = numeric.mean, 
+    SD = numeric.sd,
+    IQR = numeric.p75 - numeric.p50,
+    Min = numeric.p0, 
+    Median = numeric.p50, 
+    Max = numeric.p100
+  )
+
+kable(data_summary, booktabs = TRUE, format = "latex", digits = 2) %>%
+  kable_styling(font_size = 12, latex_options = c('scale_down', 'hold_position'))
+```
+
+```{r,fig.width=6.5}
+# Correlation graph except categorical variables
+pairs.panels(data[,-c(2,4,6)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
+```
+
+From the correlation graph we can see three variables most correlate with the total number of family member: 1.Total household income 2.Total food expenditure 3.Household head age.
+
+```{r,fig.width=6.5}
+# The graph with only strong correlate variable
+pairs.panels(data[,c(1,3,5,7)],
+      smooth = TRUE,
+      scale = FALSE,
+      density = TRUE,
+      pch =21,
+      lm = TRUE,
+      cor = TRUE,
+      jiggle = FALSE,
+      factor = 2,
+      hist.col = 4,
+      ci = TRUE
+      )
+```
+
+Then we draw boxplots of these variables to see if there is any outliers:
+
+-   First, analyze the data distribution of the total number of family members in the house under different categorical variables.
+
+```{r,fig.width=6.5}
+plot_num_sex <- ggplot(data = data, aes(x = Household.Head.Sex,
+                                        y = Total.Number.of.Family.members,
+                                        fill = Household.Head.Sex)) +
+  geom_boxplot() +
+  labs(x = "Household.Head.Sex", y = "Total.Number.of.Family.members")+ 
+  theme(legend.position = "none")
+print(plot_num_sex)
+```
+
+```{r,fig.width=6.5}
+plot_num_type <- ggplot(data = data, aes(x = Type.of.Household,
+                                         y = Total.Number.of.Family.members,
+                                         fill = Type.of.Household)) +
+  geom_boxplot() +
+  labs(x = "Type.of.Household", y = "Total.Number.of.Family.members")+ 
+  theme(legend.position = "none")
+print(plot_num_type)
+```
+
+```{r,fig.width=6.5}
+plot_num_ele <- ggplot(data = data, aes(x = Electricity,
+                                        y = Total.Number.of.Family.members,
+                                        fill = Electricity)) +
+  geom_boxplot() +
+  labs(x = "Electricity", y = "Total.Number.of.Family.members")+ 
+  theme(legend.position = "none")
+print(plot_num_ele)
+```
+
+As can be seen from the above three figures, there are significant differences between sex of household head and type of household, but the distribution of the total of number of family members is basically the same under different electricity types. Therefore, it is inferred that this variable has no significant impact on the number of family members.
+
+-   Second, we are also interested in whether food expenditures differed by type of household.
+
+```{r,fig.width=6.5}
+plot_food_type <- ggplot(data = data, aes(x = Type.of.Household,
+                                        y = Total.Food.Expenditure,
+                                        fill = Type.of.Household)) +
+  geom_boxplot() +
+  labs(x = "Type.of.Household", y = "Total.Food.Expenditure")+ 
+  theme(legend.position = "none")
+print(plot_food_type)
+```
+
+Through the figure, it is found that the difference in food expenditures among different house types is smaller than the difference in number of family members.
+
+# Methodology
+
+The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. And combined with the previous visualization analysis, we consider using Poisson regression.
+
+### Model fitted
+
+We plan to select model by looking at the p-value of variable and using the stepwise model selection based on AIC. Model 1 covers all explanatory variables.
+
+1.  P-value
+
+Fit all variables into a generalized linear regression model.
+
+```{r}
+poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Floor.Area + 
+                         House.Age + 
+                         Number.of.bedrooms + 
+                         Electricity,
+                       family = "poisson", data = data)
+
+summ(poisson_model_1)
+```
+
+From the result, we notice that P-value of house floor area is 0.77, indicating that it is not statistically significant. So we decide to eliminate this variable.
+
+```{r}
+poisson_model_2 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex +
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age + 
+                         Number.of.bedrooms + 
+                         Electricity,
+                       family = "poisson", data = data)
+summ(poisson_model_2)
+```
+
+The next step is remove the insignificant electricity variables.
+
+```{r}
+poisson_model_3 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age + 
+                         Number.of.bedrooms,
+                       family = "poisson", data = data)
+summ(poisson_model_3)
+```
+
+The p-value of number of bedrooms is 0.07. We try to delete this variable to check the model result.
+
+```{r}
+poisson_model_4 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
+                         Total.Food.Expenditure + 
+                         Household.Head.Sex + 
+                         Household.Head.Age + 
+                         Type.of.Household + 
+                         House.Age,
+                       family = "poisson", data = data)
+summ(poisson_model_4)
+#plot(poisson_model_4)
+```
+
+All variables are significant.
+
+2.  Step-wise AIC
+
+```{r}
+library(MASS)
+poisson_model_step <- stepAIC(poisson_model_1, direction = "both")
+
+summ(poisson_model_step)
+```
+
+The selected model is the same as Model 3.
+
+### Model selection
+
+1.  AIC value
+
+```{r}
+# AIC and BIC for each module
+models <- list(poisson_model_1, poisson_model_2, poisson_model_3,  poisson_model_4)
+model_names <- c("Model 1", "Model 2","Model 3", "Model 4")
+
+aic_bic_df <- tibble(
+  Model = model_names,
+  AIC = sapply(models, AIC),
+  BIC = sapply(models, BIC)
+)
+aic_bic_df
+```
+
+The AIC value of Model 3 is smaller, but the difference between the AIC values of Model 3 and Model 4 is very small.
+
+2.  cross validation
+
+```{r}
+library(caret)
+# set cross validation
+train_control <- trainControl(method = "cv", number = 10)
+```
+
+```{r}
+model_with_bed<- train(Total.Number.of.Family.members ~ Total.Household.Income + Total.Food.Expenditure + Household.Head.Sex + Household.Head.Age + Type.of.Household + House.Age + Number.of.bedrooms, 
+               data = data, 
+               method = "glm", 
+               family = poisson(link = "log"), 
+               trControl = train_control)
+
+model_without_bed<- train(Total.Number.of.Family.members ~ Total.Household.Income + Total.Food.Expenditure + Household.Head.Sex + Household.Head.Age + Type.of.Household + House.Age , 
+               data = data, 
+               method = "glm", 
+               family = poisson(link = "log"), 
+               trControl = train_control)
+```
+
+```{r}
+residual_deviance_with_bed <- sum(resid(model_with_bed, type = "deviance")^2)
+residual_deviance_without_bed<- sum(resid(model_without_bed, type = "deviance")^2)
+
+print(residual_deviance_with_bed)
+print(residual_deviance_without_bed)
+```
+
+From the result, although the residual deviance of the "with bed model" is slightly higher than the residual deviance of the "without bed model", the "without bed model" is simpler, so we choose the "without bed model".
+
+# Assumption check
+
+1.  The assumption that the mean equals the variance
+
+Testing for overdispersion. If the dispersion index is significantly less than 1, this indicates that the model is not overdispersed.
+
+```{r}
+dispersion_index <- sum(residuals(poisson_model_4, type = "pearson")^2) / df.residual(poisson_model_4)
+print(dispersion_index)
+```
+
+The dispersion index is below 1.
+
+2.  Assumption of linear relationships Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
+
+```{r,fig.width=6.5}
+# Residuals plot of Model 4
+residuals <- residuals(poisson_model_4)
+plot(residuals ~ fitted.values(poisson_model_4),
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residual Plot for model 4",
+     cex=1,
+     pch=20)+
+abline(h=0, lty=2, col="red",lwd=3)  
+
+```
+
+```{r, fig.width=10, fig.height=8}
+# Residuals for different variables.
+par(mfrow=c(3, 2))
+
+# Residual Plot for total household income
+poisson_THI <- glm(Total.Number.of.Family.members ~ Total.Household.Income,family = "poisson", data = data)
+plot(residuals(poisson_THI) ~ fitted.values(poisson_THI),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for Total Household Income",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+# Residual Plot for total food expenditure
+poisson_TFE <- glm(Total.Number.of.Family.members ~ Total.Food.Expenditure,family = "poisson", data = data)
+plot(residuals(poisson_TFE) ~ fitted.values(poisson_TFE),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for Total Food Expenditure",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+# Residual Plot for household head sex
+poisson_HHS <- glm(Total.Number.of.Family.members ~ Household.Head.Sex,family = "poisson", data = data)
+plot(residuals(poisson_HHS) ~ fitted.values(poisson_HHS),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for Household Head Sex",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+# Residual Plot for household head age
+poisson_HHA <- glm(Total.Number.of.Family.members ~ Household.Head.Age,family = "poisson", data = data)
+plot(residuals(poisson_HHA) ~ fitted.values(poisson_HHA),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for Household Head Age",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+# Residual Plot for type of household
+poisson_TH <- glm(Total.Number.of.Family.members ~ Type.of.Household,family = "poisson", data = data)
+plot(residuals(poisson_TH) ~ fitted.values(poisson_TH),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for Type of Household",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+# Residual Plot for house age
+poisson_HA <- glm(Total.Number.of.Family.members ~ House.Age,family = "poisson", data = data)
+plot(residuals(poisson_HA) ~ fitted.values(poisson_HA),
+     xlab = "Fitted Values", ylab = "Residuals",
+     main = "Residual Plot for House Age",
+     cex=1, pch=20)
+abline(h=0, lty=2, col="red", lwd=3)
+
+
+par(mfrow=c(1, 1))
+
+```
+
+3.The residuals are normally distributed. Check this by Q-Q plot.
+
+```{r,fig.width=6.5}
+qqnorm(residuals)
+qqline(residuals, col="red",lwd=2)
+```
