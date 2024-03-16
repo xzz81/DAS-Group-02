@@ -1,6 +1,6 @@
 ---
 title: "Group_02_Analysis"
-author: "Group02: Yue Xing, Chengyang Dong, Jingyi Zhu, Qinyuan Yi"
+author: "Group02: Yue Xing, Chengyang Dong, Jingyi Zhu, Qinyuan Ye"
 number-sections: false
 format: pdf
 include-in-header: 
