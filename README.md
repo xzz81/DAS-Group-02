@@ -1,6 +1,6 @@
 Project overview:
 
-This study looks at the factors that influence household size in various regions of the Philippines by using Generalized Linear Models (GLMs). Then using correlation analysis, the Akaike Information Criterion (AIC), and cross-validation to filter the variables. Additionally, we evaluate our models using residual analysis to ensure their dependability. 
+This study focuses on the factors that influence household size in various regions of the Philippines by using Generalized Linear Models (GLMs). Then using correlation analysis, the Akaike Information Criterion (AIC), and cross-validation to filter the variables. Additionally, we evaluate our models using residual analysis to ensure their dependability. 
 
 Instructions for use:
 
