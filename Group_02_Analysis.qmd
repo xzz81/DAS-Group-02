@@ -192,6 +192,23 @@ print(plot_food_type)
 
 Through the figure, it is found that the difference in food expenditures among different house types is smaller than the difference in number of family members.
 
+```{r,fig.width=6.5}
+boxplot(data[,c("Total.Household.Income","Total.Food.Expenditure","House.Floor.Area")])
+```
+
+```{r}
+p1 <- ggplot(data = data, aes(x = "",y = Total.Household.Income)) +
+  geom_boxplot() +
+  labs(x = "Total.Household.Income", y = "")
+p2 <- ggplot(data = data, aes(x = "",y = Total.Food.Expenditure)) +
+  geom_boxplot() +
+  labs(x = "Total.Food.Expenditure", y = "")
+p3 <- ggplot(data = data, aes(x = "",y = House.Floor.Area)) +
+  geom_boxplot() +
+  labs(x = "House.Floor.Area", y = "")
+p1+p2+p3+plot_layout(nrow=1)
+```
+
 # Methodology
 
 The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. And combined with the previous visualization analysis, we consider using Poisson regression.
@@ -333,7 +350,7 @@ From the result, although the residual deviance of the "with bed model" is sligh
 Testing for overdispersion. If the dispersion index is significantly less than 1, this indicates that the model is not overdispersed.
 
 ```{r}
-dispersion_index <- sum(residuals(poisson_model_4, type = "pearson")^2) / df.residual(poisson_model_4)
+dispersion_index <- sum(residuals(poisson_model_3, type = "pearson")^2) / df.residual(poisson_model_3)
 print(dispersion_index)
 ```
 
@@ -342,12 +359,12 @@ The dispersion index is below 1.
 2.  Assumption of linear relationships Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
 
 ```{r,fig.width=6.5}
-# Residuals plot of Model 4
-residuals <- residuals(poisson_model_4)
-plot(residuals ~ fitted.values(poisson_model_4),
+# Residuals plot of Model 3
+residuals <- residuals(poisson_model_3)
+plot(residuals ~ fitted.values(poisson_model_3),
      xlab = "Fitted Values",
      ylab = "Residuals",
-     main = "Residual Plot for model 4",
+     main = "Residual Plot for model 3",
      cex=1,
      pch=20)+
 abline(h=0, lty=2, col="red",lwd=3)  
