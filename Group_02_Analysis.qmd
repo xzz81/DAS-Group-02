@@ -17,7 +17,7 @@ output:
   pdf_document:
 ---
 
-# exploratory data analysis
+# Exploratory Data Analysis
 
 We are using the given data set "dataset02", which provides data on family income and expenditure. We aim to analyse which household-related variables influence the number of people living in a household.
 
@@ -43,19 +43,19 @@ data <- read.csv("dataset02.csv")
 glimpse(data)
 ```
 
-Considering that "Total.Number.of.Family.members" is a set of counting variables, consisting of discrete non-negative integers. Therefore, it was chosen to first observe the characteristics of the distribution of the Total.Number.of.Family.members variable.
+Considering that "Total.Number.of.Family.members" is a set of counting variables, consisting of discrete non-negative integers. Therefore, it was chosen to first observe the characteristics of the distribution of the dependent variable.
 
-```{r}
+```{r, fig.cap="Dependent variable data distribution"}
 # View outcome variables
 ggplot(data, aes(Total.Number.of.Family.members)) +
   geom_histogram()
 ```
 
-The histogram shows that the distribution of the Total.Number.of.Family.members variable is right skewed. Combined with the fact that the variable is a set of count-type variables, it can be roughly tentatively assumed that the abundance of the species shows a Poisson distribution.
+The Figure 1 shows that the distribution of the "Total.Number.of.Family.members" variable is right skewed. Combined with the fact that the variable is a set of count-type variables, it can be roughly tentatively assumed that the total number of family members shows a Poisson distribution.
 
 Therefore, for the subsequent regression model selection for analysing the factors influencing family members, the Poisson regression implementation in the generalised linear model can be initially considered.
 
-### Data pre-processing
+### Data Pre-processing
 
 ```{r}
 # Convert some variables into factor variables
@@ -80,6 +80,7 @@ The level of "Household.Head.Sex" is female and male. "Type.of.Household" has th
 ### Visualization
 
 ```{r}
+#| tab-cap: "Descriptive statistical analysis of selected variables"
 # Descriptive statistical analysis of selected variables
 data_summary <- data %>%
   select(Total.Number.of.Family.members, Total.Household.Income, Total.Food.Expenditure, 
@@ -94,7 +95,7 @@ data_summary <- data %>%
       skim_variable == "House.Floor.Area" ~ "House Floor Area",
       skim_variable == "House.Age" ~ "House Age",
       skim_variable == "Number.of.bedrooms" ~ "Number of bedrooms",
-      TRUE ~ as.character(skim_variable) # 更改变量名称
+      TRUE ~ as.character(skim_variable) # 
     ),
     Mean = numeric.mean, 
     SD = numeric.sd,
@@ -108,7 +109,7 @@ kable(data_summary, booktabs = TRUE, format = "latex", digits = 2) %>%
   kable_styling(font_size = 12, latex_options = c('scale_down', 'hold_position'))
 ```
 
-```{r,fig.width=6.5}
+```{r,fig.width=6.5, fig.cap="Correlation graph except categorical variables"}
 # Correlation graph except categorical variables
 pairs.panels(data[,-c(2,4,6)],
       smooth = TRUE,
@@ -124,9 +125,9 @@ pairs.panels(data[,-c(2,4,6)],
       )
 ```
 
-From the correlation graph we can see three variables most correlate with the total number of family member: 1.Total household income 2.Total food expenditure 3.Household head age.
+From the correlation graph of Figure 2 we can see three variables most correlate with the total number of family member: 1.Total household income 2.Total food expenditure 3.Household head age.
 
-```{r,fig.width=6.5}
+```{r, fig.width=6.5, fig.cap="The pairs plot of strong correlate variable"}
 # The graph with only strong correlate variable
 pairs.panels(data[,c(1,3,5,7)],
       smooth = TRUE,
@@ -142,11 +143,11 @@ pairs.panels(data[,c(1,3,5,7)],
       )
 ```
 
-Then we draw boxplots of these variables to see if there is any outliers:
+Then we draw boxplots of these variables to analyse:
 
--   First, analyze the data distribution of the total number of family members in the house under different categorical variables.
+- First, analyze the data distribution of the total number of family members in the house under different categorical variables.
 
-```{r,fig.width=6.5}
+```{r, fig.width=6.5, fig.cap="The boxplot of total numbers of family members and gender of head of household"}
 plot_num_sex <- ggplot(data = data, aes(x = Household.Head.Sex,
                                         y = Total.Number.of.Family.members,
                                         fill = Household.Head.Sex)) +
@@ -156,7 +157,7 @@ plot_num_sex <- ggplot(data = data, aes(x = Household.Head.Sex,
 print(plot_num_sex)
 ```
 
-```{r,fig.width=6.5}
+```{r, fig.width=6.5, fig.cap="The boxplot of total numbers of family members and type of household"}
 plot_num_type <- ggplot(data = data, aes(x = Type.of.Household,
                                          y = Total.Number.of.Family.members,
                                          fill = Type.of.Household)) +
@@ -166,7 +167,7 @@ plot_num_type <- ggplot(data = data, aes(x = Type.of.Household,
 print(plot_num_type)
 ```
 
-```{r,fig.width=6.5}
+```{r, fig.width=6.5, fig.cap="The boxplot of total numbers of family members and electricity"}
 plot_num_ele <- ggplot(data = data, aes(x = Electricity,
                                         y = Total.Number.of.Family.members,
                                         fill = Electricity)) +
@@ -176,11 +177,11 @@ plot_num_ele <- ggplot(data = data, aes(x = Electricity,
 print(plot_num_ele)
 ```
 
-As can be seen from the above three figures, there are significant differences between sex of household head and type of household, but the distribution of the total of number of family members is basically the same under different electricity types. Therefore, it is inferred that this variable has no significant impact on the number of family members.
+As can be seen from the Figure 4 to Figure 6, there are significant differences between sex of household head and type of household, but the distribution of the total of number of family members is basically the same under different electricity types. Therefore, it is inferred that this variable has no significant impact on the number of family members.
 
--   Second, we are also interested in whether food expenditures differed by type of household.
+- Second, we are also interested in whether food expenditures differed by type of household.
 
-```{r,fig.width=6.5}
+```{r, fig.width=6.5, fig.cap="The boxplot of total food expenditure and type of household"}
 plot_food_type <- ggplot(data = data, aes(x = Type.of.Household,
                                         y = Total.Food.Expenditure,
                                         fill = Type.of.Household)) +
@@ -190,19 +191,34 @@ plot_food_type <- ggplot(data = data, aes(x = Type.of.Household,
 print(plot_food_type)
 ```
 
-Through the figure, it is found that the difference in food expenditures among different house types is smaller than the difference in number of family members.
+Through the Figure 7, it is found that the difference in food expenditures among different house types is smaller than the difference in number of family members.
+
+```{r, fig.width=6.5, fig.cap="The boxplot of number of family member, food expenditure and house area"}
+p1 <- ggplot(data = data, aes(x = "",y = Total.Household.Income)) +
+  geom_boxplot() +
+  labs(x = "Total.Household.Income", y = "")
+p2 <- ggplot(data = data, aes(x = "",y = Total.Food.Expenditure)) +
+  geom_boxplot() +
+  labs(x = "Total.Food.Expenditure", y = "")
+p3 <- ggplot(data = data, aes(x = "",y = House.Floor.Area)) +
+  geom_boxplot() +
+  labs(x = "House.Floor.Area", y = "")
+p1+p2+p3+plot_layout(nrow=1)
+```
+
+Figure 8 is a box plot of number of family member, food expenditure and house area. The data distribution of these variables is analyzed through the box plot.
 
 # Methodology
 
 The response variable here is the number of people living in the household (Total.Number.of.Family.members), which is count data. And combined with the previous visualization analysis, we consider using Poisson regression.
 
-### Model fitted
+### Model Fitted
 
 We plan to select model by looking at the p-value of variable and using the stepwise model selection based on AIC. Model 1 covers all explanatory variables.
 
-1.  P-value
+1. P-value
 
-Fit all variables into a generalized linear regression model.
+First, fit all variables into a generalized linear regression model.
 
 ```{r}
 poisson_model_1 <- glm(Total.Number.of.Family.members ~ Total.Household.Income +
@@ -262,9 +278,9 @@ summ(poisson_model_4)
 #plot(poisson_model_4)
 ```
 
-All variables are significant.
+All variables are significant in Model 4.
 
-2.  Step-wise AIC
+2. Step-wise AIC
 
 ```{r}
 library(MASS)
@@ -275,9 +291,9 @@ summ(poisson_model_step)
 
 The selected model is the same as Model 3.
 
-### Model selection
+### Model Selection
 
-1.  AIC value
+1. AIC value
 
 ```{r}
 # AIC and BIC for each module
@@ -292,9 +308,7 @@ aic_bic_df <- tibble(
 aic_bic_df
 ```
 
-The AIC value of Model 3 is smaller, but the difference between the AIC values of Model 3 and Model 4 is very small.
-
-2.  cross validation
+2. cross validation
 
 ```{r}
 library(caret)
@@ -324,37 +338,37 @@ print(residual_deviance_with_bed)
 print(residual_deviance_without_bed)
 ```
 
-From the result, although the residual deviance of the "with bed model" is slightly higher than the residual deviance of the "without bed model", the "without bed model" is simpler, so we choose the "without bed model".
+From both AIC and cross validation result, the model3 is the best model. It has lower AIC and lower residual_deviance.
 
-# Assumption check
+# Assumption Check
 
-1.  The assumption that the mean equals the variance
+1. The assumption that the mean equals the variance
 
 Testing for overdispersion. If the dispersion index is significantly less than 1, this indicates that the model is not overdispersed.
 
 ```{r}
-dispersion_index <- sum(residuals(poisson_model_4, type = "pearson")^2) / df.residual(poisson_model_4)
+dispersion_index <- sum(residuals(poisson_model_3, type = "pearson")^2) / df.residual(poisson_model_3)
 print(dispersion_index)
 ```
 
 The dispersion index is below 1.
 
-2.  Assumption of linear relationships Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
+2. Assumption of linear relationships Residual Analysis: Plot the residuals of the model. A scatter plot of the residuals against the fitted values should show randomly distributed points.
 
-```{r,fig.width=6.5}
-# Residuals plot of Model 4
-residuals <- residuals(poisson_model_4)
-plot(residuals ~ fitted.values(poisson_model_4),
+```{r, fig.width=6.5, fig.cap="Residuals plot of Model 3"}
+# Residuals plot of Model 3
+residuals <- residuals(poisson_model_3)
+plot(residuals ~ fitted.values(poisson_model_3),
      xlab = "Fitted Values",
      ylab = "Residuals",
-     main = "Residual Plot for model 4",
+     main = "Residual Plot for model 3",
      cex=1,
      pch=20)+
 abline(h=0, lty=2, col="red",lwd=3)  
 
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=8,fig.cap="Residuals for different variables"}
 # Residuals for different variables.
 par(mfrow=c(3, 2))
 
@@ -411,9 +425,9 @@ par(mfrow=c(1, 1))
 
 ```
 
-3.The residuals are normally distributed. Check this by Q-Q plot.
+3. The residuals are normally distributed. Check this by Q-Q plot.
 
-```{r,fig.width=6.5}
+```{r,fig.width=6.5, fig.cap="Q-Q plot of Model 3"}
 qqnorm(residuals)
 qqline(residuals, col="red",lwd=2)
 ```
